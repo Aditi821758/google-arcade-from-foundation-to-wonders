@@ -1,5 +1,5 @@
 PROJECT=$(gcloud config get-value project)
-BUCKET=qwiklabs-gcp-03-061714b645d0-bucket
+BUCKET=qwiklabs-gcp-02-58d23850c690-bucket
 
 
 gsutil setmeta -h "Content-Type:text/html" gs://${BUCKET}/index.html

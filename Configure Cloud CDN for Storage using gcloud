@@ -1,0 +1,48 @@
+# ---------------------------------------------
+# Cloud CDN Setup for GCS Bucket (HTTP)
+# ---------------------------------------------
+
+# Set required variables
+# Set environment variables
+# BUCKET_NAME → Your existing GCS bucket name (IMPORTANT: set this before running)
+# BACKEND_BUCKET → Backend bucket resource name
+# URL_MAP → URL map name
+# PROXY → Target HTTP proxy name
+# FORWARDING_RULE → Forwarding rule name
+
+BUCKET_NAME=
+BACKEND_BUCKET=static-backend-bucket
+URL_MAP=cdn-map
+PROXY=cdn-http-proxy
+FORWARDING_RULE=cdn-http-rule
+
+
+# Create backend bucket and enable Cloud CDN
+# This links your GCS bucket with Cloud CDN
+gcloud compute backend-buckets create $BACKEND_BUCKET --gcs-bucket-name=$BUCKET_NAME --enable-cdn
+
+
+# Create URL map and attach backend bucket as default
+gcloud compute url-maps create $URL_MAP --default-backend-bucket=$BACKEND_BUCKET
+
+
+# Create target HTTP proxy using the URL map
+gcloud compute target-http-proxies create $PROXY --url-map=$URL_MAP
+
+
+# Create global forwarding rule on port 80 (creates public IP)
+gcloud compute forwarding-rules create $FORWARDING_RULE --global --target-http-proxy=$PROXY --ports=80
+
+
+# Get the external IP address of the Load Balancer
+gcloud compute forwarding-rules describe $FORWARDING_RULE --global --format="value(IPAddress)"
+
+
+# List objects inside images folder in the bucket
+# Make sure BUCKET_NAME variable is properly set
+gsutil ls gs://$BUCKET_NAME/images/
+
+
+# Download image using Load Balancer IP
+# Replace IP_ADDRESS with actual IP from above command
+curl -o nature.png http://IP_ADDRESS/images/nature.png
